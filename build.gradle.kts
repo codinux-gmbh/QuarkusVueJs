@@ -28,14 +28,13 @@ dependencies {
     implementation("io.quarkus:quarkus-rest")
     implementation("io.quarkus:quarkus-rest-jackson")
 
+    implementation("io.quarkus:quarkus-webjars-locator")
+    implementation("org.webjars.npm:vue:3.4.21")
+
 
     testImplementation("io.quarkus:quarkus-junit5")
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
 
 tasks.withType<Test> {
     systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
