@@ -1,7 +1,12 @@
+import com.github.gradle.node.npm.task.NpxTask
+
 plugins {
     kotlin("jvm") version "1.9.23"
     kotlin("plugin.allopen") version "1.9.23"
+
     id("io.quarkus")
+
+    id("com.github.node-gradle.node") version "7.0.2"
 }
 
 
@@ -28,9 +33,6 @@ dependencies {
     implementation("io.quarkus:quarkus-rest")
     implementation("io.quarkus:quarkus-rest-jackson")
 
-    implementation("io.quarkus:quarkus-webjars-locator")
-    implementation("org.webjars.npm:vue:3.4.21")
-
 
     testImplementation("io.quarkus:quarkus-junit5")
 }
@@ -48,4 +50,50 @@ allOpen {
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.javaParameters = true
+}
+
+
+val buildVueJsAppTask = tasks.register<NpxTask>("buildVueJsApp") {
+    dependsOn("npmInstall")
+    group = "frontend"
+    description = "Transpiles Vue.js components to standard JavaScript and CSS files and copies them to src/resources/META-INF/resources"
+
+    workingDir.set(File("$projectDir/src/main/webapp"))
+
+    command.set("npm")
+    args.addAll("run", "build")
+}
+
+tasks.named("quarkusBuild") {
+    dependsOn(buildVueJsAppTask)
+}
+
+val watchVueJsChangesTask = tasks.register("watchVueJsChanges") {
+    dependsOn("npmInstall")
+    group = "frontend"
+    description = "On each change to Vue.js files transpiles components to standard JavaScript and CSS files and copies them to src/resources/META-INF/resources"
+
+    doFirst {
+        // asynchronously start file watch that transpiles Vue.js files and copies them to src/resources/META-INF/resources
+        this.extra["process"] = ProcessBuilder()
+            .directory(File("$projectDir/src/main/webapp"))
+            .command("npm", "run", "watch")
+            .start()
+    }
+}
+
+val stopWatchingVueJsChangesTask = tasks.register("stopWatchingVueJsChanges") {
+    group = "frontend"
+    description = "Stops watching changes to Vue.js files"
+
+    doFirst {
+        // stop async file watch process again
+        (watchVueJsChangesTask.get().extra["process"] as? Process)?.destroy()
+    }
+}
+
+tasks.named("quarkusDev") {
+    dependsOn(watchVueJsChangesTask)
+
+    finalizedBy(stopWatchingVueJsChangesTask)
 }
