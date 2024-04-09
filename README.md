@@ -17,3 +17,10 @@ For the Vue.js application see [index.html](src/main/resources/META-INF/resource
 
 For how to set up Quarkus and add Vue.js via WebJars see [build.gradle.kts](build.gradle.kts).
 
+## Vue with build setup
+
+To use e.g. Single File Components (SFC), Vue needs to be integrated into a build setup wit Node / Yarn / Bun / ... so that
+*.vue files get pre-compiled to standard JavaScript and CSS files.
+
+For an example how to do this see branch `node-build`.
+
